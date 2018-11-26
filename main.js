@@ -114,15 +114,57 @@ function constructItem(item, promList, consolidatedItemWithPromDict) {
 	consolidatedItemWithPromDict.push(newItem);
 }
 
-module.exports = {
-	constItemDict,
-	loadAllItems,
-	loadPromotions,
-	calProm
-};
+
 
 
 function matchingPromotion(promList) {
 	return promList.find((x) => x.type === "BUY_TWO_GET_ONE_FREE");
 }
 
+function printReceipt (itemList) {
+
+	let consolidatedItemWithPromDict = calProm(constItemDict(itemList, loadAllItems()), loadPromotions());
+	let result = "***<store earning no money>Receipt ***\n";
+	let total = 0;
+	let totalSaved = 0;
+	consolidatedItemWithPromDict.forEach((item) => {
+		({total, totalSaved} = calTotal(total, item, totalSaved));
+		result = calculateAndPrintItem(result, item); 
+	});
+	result = printFooter(result, total, totalSaved);
+
+	return result;
+}
+
+function calculateAndPrintItem(result, item) {
+	result = printBody(result, item);
+	return result;
+}
+
+
+function printBody(result, item) {
+	result += `Name: ${item.name}, Quantity: ${item.count} ${item.unit}, Unit price: ${item.price.toFixed(2)} (yuan), Subtotal: ${item.subTotal.toFixed(2)} (yuan)\n`;
+	return result;
+}
+
+function calTotal(total, item, totalSaved) {
+	total += item.subTotal;
+	totalSaved += item.price * item.count - item.subTotal;
+	return { total, totalSaved };
+}
+
+function printFooter(result, total, totalSaved) {
+	result += "----------------------\n";
+	result += `Total: ${total.toFixed(2)} (yuan)\n`;
+	result += `Saving: ${totalSaved.toFixed(2)} (yuan)\n`;
+	result += "**********************\n";
+	return result;
+}
+
+module.exports = {
+	constItemDict,
+	loadAllItems,
+	loadPromotions,
+	calProm,
+	printReceipt
+};
