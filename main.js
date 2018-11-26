@@ -81,17 +81,48 @@ function constructUniqueItem(itemList, element, allItemList, consolidatedItemDic
 		count += (item.includes("-")) ? parseFloat(item.split("-")[1]) : 1;
 	});
 	newItem.count = count;
-	const matchedItemForUpdate = allItemList.find((x) => x.barcode.substring(0, 10) === element)
+	const matchedItemForUpdate = findBoughtItem(allItemList, element)
+	suppBoughtInfo(newItem, matchedItemForUpdate);
+	consolidatedItemDict.push(newItem);
+}
+
+function findBoughtItem(allItemList, element) {
+	return allItemList.find((x) => x.barcode.substring(0, 10) === element);
+}
+
+function suppBoughtInfo(newItem, matchedItemForUpdate) {
 	newItem.barcode = matchedItemForUpdate.barcode;
 	newItem.name = matchedItemForUpdate.name;
 	newItem.unit = matchedItemForUpdate.unit;
 	newItem.price = matchedItemForUpdate.price;
-	consolidatedItemDict.push(newItem);
+}
+
+function calProm(consolidatedItemDict, promList){
+	let consolidatedItemWithPromDict = [];
+	
+	consolidatedItemDict.forEach((item) => {
+		constructItem(item, promList, consolidatedItemWithPromDict);
+	});
+	
+	return consolidatedItemWithPromDict;
+}
+
+function constructItem(item, promList, consolidatedItemWithPromDict) {
+	let newItem = item;
+	let buy2Get1Free = matchingPromotion(promList);
+	newItem.subTotal = newItem.price * (newItem.count - ((buy2Get1Free.barcodes.includes(item.barcode)) ? parseInt(newItem.count / 3) : 0));
+	consolidatedItemWithPromDict.push(newItem);
 }
 
 module.exports = {
 	constItemDict,
-	loadAllItems
+	loadAllItems,
+	loadPromotions,
+	calProm
 };
 
+
+function matchingPromotion(promList) {
+	return promList.find((x) => x.type === "BUY_TWO_GET_ONE_FREE");
+}
 
